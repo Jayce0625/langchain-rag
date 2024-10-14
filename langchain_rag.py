@@ -9,9 +9,6 @@ from transformers.generation.utils import GenerationConfig
 from modelscope import snapshot_download, Model
 
 # 检索增强相关包（langchain相关）
-from langchain.chains import LLMChain
-from langchain.prompts import PromptTemplate
-
 from langchain_community.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.embeddings import ModelScopeEmbeddings
@@ -53,31 +50,24 @@ print(f'{args.faiss_db}.faiss saved at {os.getcwd()}!')
 # 加载由参数指定的faiss向量库，用于知识召回
 vector_db=FAISS.load_local(f'{args.faiss_db}.faiss', embeddings, allow_dangerous_deserialization=True)
 
-query = "魏嘉辰是谁?"
-result_simi = vector_db.similarity_search(query, k = 5)
-# retriever=vector_db.as_retriever(search_kwargs={"k":5})  # RAG的R，代表选取
+# 开始对话
+while True:
+    query = input('query:')
 
-source_knowledge= "\n".join([x.page_content for x in result_simi])
+    result_simi = vector_db.similarity_search(query, k = 5)  # RAG的R过程，生成检索得到的TOP5相似度的chunk片
+    source_knowledge= "\n".join([x.page_content for x in result_simi])
 
-# 设置prompt
-augmented_prompt = """Using the contexts below, answer the query.
+    # 使用RAG技术，用从向量数据库中检索得到的与query相似度TOP5的chunk片段增强prompt提示词
+    augmented_prompt = f"""Using the contexts below, answer the query.
 
-contexts:
-{source_knowledge}
+    contexts:
+    {source_knowledge}
 
-query: {query}"""
+    query: {query}"""
 
-prompt = PromptTemplate(template=augmented_prompt, input_variables=["source_knowledge", "query"])
-
-chat_chain = LLMChain(prompt=prompt, llm=model, llm_kwargs={"temperature": 0, "max_length": 1024})
-print(chat_chain.run({"source_knowledge": source_knowledge, "query": query}))
-# # 开始对话
-# chat_history = []
-# while True:
-#     query = input('query:')
-#     response = chat_chain.run({'query': query})
-#     print(response.content)
-
-
-
+    messages = []
+    messages.append({"role": "user", "content": augmented_prompt})
+    response = model(messages)
+    print(response)
+    print(response['response'])
 # -------------------------------------------------------------------- 增强 --------------------------------------------------------------------
