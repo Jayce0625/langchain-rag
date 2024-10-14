@@ -16,8 +16,6 @@ from langchain_community.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.embeddings import ModelScopeEmbeddings
 from langchain_community.vectorstores import FAISS
-from langchain.prompts.chat import ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate, AIMessagePromptTemplate, MessagesPlaceholder
-from langchain.schema import HumanMessage, SystemMessage, AIMessage
 
 
 # 命令行参数
@@ -57,29 +55,27 @@ vector_db=FAISS.load_local(f'{args.faiss_db}.faiss', embeddings, allow_dangerous
 retriever=vector_db.as_retriever(search_kwargs={"k":5})  # RAG的R，代表选取
 
 # 设置prompt
-system_prompt=SystemMessagePromptTemplate.from_template('You are a helpful assistant.')
-user_prompt = HumanMessagePromptTemplate.from_template("""
-                                                       Using the contexts below, answer the query.
-                                                       
-                                                       contexts:
-                                                       {source_knowledge}
-                                                       
-                                                       query: {query}""")
-full_chat_prompt=ChatPromptTemplate.from_messages([system_prompt, MessagesPlaceholder(variable_name="chat_history"), user_prompt])
+augmented_prompt = """Using the contexts below, answer the query.
 
-# prompt = PromptTemplate(template=augmented_prompt, input_variables=["source_knowledge", "query"])
+contexts:
+{source_knowledge}
+
+query: {query}"""
+
+prompt = PromptTemplate(template=augmented_prompt, input_variables=["source_knowledge", "query"])
+
 chat_chain = {
     "source_knowledge": itemgetter("query") | retriever,
     "query": itemgetter("query"),
-    "chat_history": itemgetter("chat_history"),
-} | full_chat_prompt | model
-# -------------------------------------------------------------------- 增强 --------------------------------------------------------------------
+} | prompt | model
 
 # 开始对话
 chat_history = []
 while True:
     query = input('query:')
-    response = chat_chain.invoke({'query': query, 'chat_history': chat_history})
-    chat_history.extend((HumanMessage(content=query), response))
+    response = chat_chain.invoke({'query': query})
     print(response.content)
-    chat_history = chat_history[-20:] # history只保留最新10轮对话
+
+
+
+# -------------------------------------------------------------------- 增强 --------------------------------------------------------------------
