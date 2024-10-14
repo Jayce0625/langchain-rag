@@ -73,7 +73,7 @@ chat_chain = {
 chat_history = []
 while True:
     query = input('query:')
-    response = chat_chain.invoke({'query': query})
+    response = chat_chain.run({'query': query})
     print(response.content)
 
 
