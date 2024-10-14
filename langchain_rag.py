@@ -21,7 +21,7 @@ model_dir = snapshot_download("baichuan-inc/Baichuan2-7B-Chat", revision='master
 model = Model.from_pretrained(model_dir, device_map="auto", trust_remote_code=True, torch_dtype=torch.float16)  # 从本地加载预训练权重，精度使用fp16
 messages = []
 messages.append({"role": "user", "content": "讲解一下“温故而知新”"})  # 构建prompt及角色
-response = model(message)
+response = model(messages)
 print(response)
 # ----------------------------------------------------------------- 构建大模型 -----------------------------------------------------------------
 
