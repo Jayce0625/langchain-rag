@@ -10,7 +10,7 @@ RAG向量召回示例
 pip install langchain pypdf rapidocr-onnxruntime modelscope transformers faiss-cpu tiktoken -i https://mirrors.aliyun.com/pypi/simple/
 ```
 
-如果有量化相关的报错，从源码安装vllm-gpts、auto-gtpq
+如果有量化相关的报错，从源码安装vllm-gpts、auto-gptq
 
 ## 用法
 
