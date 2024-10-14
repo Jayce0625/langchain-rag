@@ -27,10 +27,10 @@ args = parser.parse_args()
 # --------------------------------- 构建大模型，因科学上网原因，以Baichuan2-7B-Chat为例使用国产魔搭下载构建本地模型 ---------------------------------
 model_dir = snapshot_download("baichuan-inc/Baichuan2-7B-Chat", revision='master')  # 下载预训练权重至本地（Linux中默认为~/.cache/modelscope）
 model = Model.from_pretrained(model_dir, device_map="auto", trust_remote_code=True, torch_dtype=torch.float16)  # 从本地加载预训练权重，精度使用fp16
-messages = []
-messages.append({"role": "user", "content": "讲解一下“温故而知新”"})  # 构建prompt及角色
-response = model(messages)
-print(response)
+# messages = []
+# messages.append({"role": "user", "content": "讲解一下“温故而知新”"})  # 构建prompt及角色
+# response = model(messages)
+# print(response)
 # ----------------------------------------------------------------- 构建大模型 -----------------------------------------------------------------
 
 
