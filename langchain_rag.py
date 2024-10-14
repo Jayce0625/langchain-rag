@@ -1,4 +1,6 @@
 import os
+import argparse
+from operator import itemgetter
 
 # 本地构建离线预训练模型相关包（transformers、torch等）
 import torch
@@ -14,6 +16,14 @@ from langchain_community.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.embeddings import ModelScopeEmbeddings
 from langchain_community.vectorstores import FAISS
+from langchain.prompts.chat import ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate, AIMessagePromptTemplate, MessagesPlaceholder
+from langchain.schema import HumanMessage, SystemMessage, AIMessage
+
+
+# 命令行参数
+parser = argparse.ArgumentParser(description="Process some integers.")
+parser.add_argument('--faiss_db', type=str, default='LLM', help='FAISS database file name. In this demo, you can use \'LLM\' or \'WJC\'')
+args = parser.parse_args()
 
 
 # --------------------------------- 构建大模型，因科学上网原因，以Baichuan2-7B-Chat为例使用国产魔搭下载构建本地模型 ---------------------------------
@@ -25,22 +35,51 @@ response = model(messages)
 print(response)
 # ----------------------------------------------------------------- 构建大模型 -----------------------------------------------------------------
 
-# # ------------------------------ 检索，使用OCR解析pdf中图片里面的文字，并切成chunk片段，块大小为100，块重叠token数为10 ------------------------------
-# pdf_loader_llm=PyPDFLoader('LLM.pdf', extract_images=True)   # 该文件讲述LLM大模型相关知识
-# chunks_llm=pdf_loader_llm.load_and_split(text_splitter=RecursiveCharacterTextSplitter(chunk_size=100, chunk_overlap=10))  # 先load再split，chunk_size块大小，chunk_overlap分块时的重叠大小
 
-# pdf_loader_wjc=PyPDFLoader('wjc_jianli.pdf', extract_images=True)   # 该文件为我的个人简历综合资料
-# chunks_wjc=pdf_loader_wjc.load_and_split(text_splitter=RecursiveCharacterTextSplitter(chunk_size=100, chunk_overlap=10))  # 先load再split，chunk_size块大小，chunk_overlap分块时的重叠大小
+# ------------------------------ 检索，使用OCR解析pdf中图片里面的文字，并切成chunk片段，块大小为100，块重叠token数为10 ------------------------------
+pdf_loader=PyPDFLoader(f'{args.faiss_db}.pdf', extract_images=True)   # 该文件讲述LLM大模型相关知识
+chunks=pdf_loader.load_and_split(text_splitter=RecursiveCharacterTextSplitter(chunk_size=100, chunk_overlap=10))  # 先load再split，chunk_size块大小，chunk_overlap分块时的重叠大小
 
-# # 加载embedding模型，用于将chunk向量化
-# embeddings=ModelScopeEmbeddings(model_id='iic/nlp_corom_sentence-embedding_chinese-base')  # 因Linux服务器不好科学上网的原因，所以此处使用魔搭社区的开源词嵌入模型
+# 加载embedding模型，用于将chunk向量化
+embeddings=ModelScopeEmbeddings(model_id='iic/nlp_corom_sentence-embedding_chinese-base')  # 因Linux服务器不好科学上网的原因，所以此处使用魔搭社区的开源词嵌入模型
 
-# # 构建并将chunk插入到faiss本地向量数据库（此处两个文件构建了两个数据库，其一是“LLM知识”的向量数据库，其二是“魏嘉辰个人简介”的向量数据库）
-# vector_db_llm=FAISS.from_documents(chunks_llm, embeddings)
-# vector_db_llm.save_local('LLM.faiss')
+# 构建并将chunk插入到faiss本地向量数据库（此处两个文件构建了两个数据库，其一是“LLM知识”的向量数据库，其二是“魏嘉辰个人简介”的向量数据库）
+vector_db=FAISS.from_documents(chunks, embeddings)
+vector_db.save_local(f'{args.faiss_db}.faiss')
 
-# vector_db_wjc=FAISS.from_documents(chunks_wjc, embeddings)
-# vector_db_llm.save_local('WJC.faiss')
+print(f'{args.faiss_db}.faiss saved at {os.getcwd()}!')
+# -------------------------------------------------------------------- 检索 --------------------------------------------------------------------
 
-# print('2 faiss saved!')
-# # -------------------------------------------------------------------- 检索 --------------------------------------------------------------------
+
+# ------------------------------------------------ 增强，用本地向量库增强大模型的领域知识与领域能力 ------------------------------------------------
+# 加载由参数指定的faiss向量库，用于知识召回
+vector_db=FAISS.load_local(f'{args.faiss_db}.faiss', embeddings, allow_dangerous_deserialization=True)
+retriever=vector_db.as_retriever(search_kwargs={"k":5})  # RAG的R，代表选取
+
+# 设置prompt
+system_prompt=SystemMessagePromptTemplate.from_template('You are a helpful assistant.')
+user_prompt = HumanMessagePromptTemplate.from_template("""
+                                                       Using the contexts below, answer the query.
+                                                       
+                                                       contexts:
+                                                       {source_knowledge}
+                                                       
+                                                       query: {query}""")
+full_chat_prompt=ChatPromptTemplate.from_messages([system_prompt, MessagesPlaceholder(variable_name="chat_history"), user_prompt])
+
+# prompt = PromptTemplate(template=augmented_prompt, input_variables=["source_knowledge", "query"])
+chat_chain = {
+    "source_knowledge": itemgetter("query") | retriever,
+    "query": itemgetter("query"),
+    "chat_history": itemgetter("chat_history"),
+} | full_chat_prompt | model
+# -------------------------------------------------------------------- 增强 --------------------------------------------------------------------
+
+# 开始对话
+chat_history = []
+while True:
+    query = input('query:')
+    response = chat_chain.invoke({'query': query, 'chat_history': chat_history})
+    chat_history.extend((HumanMessage(content=query), response))
+    print(response.content)
+    chat_history = chat_history[-20:] # history只保留最新10轮对话
