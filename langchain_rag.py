@@ -2,7 +2,7 @@ import os
 
 # 本地构建离线预训练模型相关包（transformers、torch等）
 import torch
-from transformers import AutoModelForCausalLM, AytoTokenizer  # CausalLM即因果大模型，即施加了掩码自注意力的自回归生成式大模型
+from transformers import AutoModelForCausalLM, AutoTokenizer  # CausalLM即因果大模型，即施加了掩码自注意力的自回归生成式大模型
 from transformers.generation.utils import GenerationConfig
 from modelscope import snapshot_download, Model
 
