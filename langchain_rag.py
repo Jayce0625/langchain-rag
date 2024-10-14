@@ -52,7 +52,12 @@ print(f'{args.faiss_db}.faiss saved at {os.getcwd()}!')
 # ------------------------------------------------ 增强，用本地向量库增强大模型的领域知识与领域能力 ------------------------------------------------
 # 加载由参数指定的faiss向量库，用于知识召回
 vector_db=FAISS.load_local(f'{args.faiss_db}.faiss', embeddings, allow_dangerous_deserialization=True)
-retriever=vector_db.as_retriever(search_kwargs={"k":5})  # RAG的R，代表选取
+
+query = "魏嘉辰是谁?"
+result_simi = vector_db.similarity_search(query, k = 5)
+# retriever=vector_db.as_retriever(search_kwargs={"k":5})  # RAG的R，代表选取
+
+source_knowledge= "\n".join([x.page_content for x in result_simi])
 
 # 设置prompt
 augmented_prompt = """Using the contexts below, answer the query.
@@ -64,17 +69,14 @@ query: {query}"""
 
 prompt = PromptTemplate(template=augmented_prompt, input_variables=["source_knowledge", "query"])
 
-chat_chain = {
-    "source_knowledge": itemgetter("query") | retriever,
-    "query": itemgetter("query"),
-} | prompt | model
-
-# 开始对话
-chat_history = []
-while True:
-    query = input('query:')
-    response = chat_chain.run({'query': query})
-    print(response.content)
+chat_chain = LLMChain(prompt=prompt, llm=model, llm_kwargs={"temperature": 0, "max_length": 1024})
+print(chat_chain.run({"source_knowledge": source_knowledge, "query": query}))
+# # 开始对话
+# chat_history = []
+# while True:
+#     query = input('query:')
+#     response = chat_chain.run({'query': query})
+#     print(response.content)
 
 
 
