@@ -1,4 +1,4 @@
-# rag-retrieval
+# 基于LangChain实现RAG检索应用
 
 RAG向量召回示例
 
