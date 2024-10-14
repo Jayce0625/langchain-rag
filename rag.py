@@ -12,7 +12,7 @@ import os
 embeddings=ModelScopeEmbeddings(model_id='iic/nlp_corom_sentence-embedding_chinese-base') 
 
 # 加载faiss向量库，用于知识召回
-vector_db=FAISS.load_local('LLM.faiss',embeddings)
+vector_db=FAISS.load_local('LLM.faiss', embeddings, allow_dangerous_deserialization=True)
 retriever=vector_db.as_retriever(search_kwargs={"k":5})
 
 # 用vllm部署openai兼容的服务端接口，然后走ChatOpenAI客户端调用
