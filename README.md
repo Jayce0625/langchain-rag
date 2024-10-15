@@ -36,7 +36,7 @@ pip install langchain huggingface_hub pypdf rapidocr-onnxruntime modelscope[fram
 
 1、请确保将外部PDF放入本demo的项目根目录，本demo中事先提供了两个，分别是LLM.pdf介绍LLM相关知识，和WJC.pdf介绍本人（魏嘉辰）的个人简介及相关信息（无隐私内容）
 
-2、直接运行完整端到端python脚本（无需第3步）langchain_rag有两个可选命令行参数，其一是--faiss_db，接收格式为字符串，为提供的PDF的文件名（不包括后缀），稍作等待即可开始与RAG增强过的LLM进行多轮对话，输入中包含“bye”或“再见”时即中止；其二是--benchmark，类型为bool，显式给出即为True，此时会先运行无RAG的LLM，然后再运行有RAG的LLM，可以显式对比相同query下的response（保证query完全一致效果更明显），benchmark下只会各进行一次对话，用作效果对比。
+2、直接运行完整端到端python脚本（无需第3步）。langchain_rag有两个可选命令行参数，其一是 **--faiss_db**，接收格式为字符串，为提供的PDF的文件名（不包括后缀），稍作等待即可开始与RAG增强过的LLM进行多轮对话，输入中包含“bye”或“再见”时即中止；其二是 **--benchmark**，类型为bool，显式给出即为True，此时会先运行无RAG的LLM，然后再运行有RAG的LLM，可以显式对比相同query下的response（保证query完全一致效果更明显），benchmark下只会各进行一次对话，用作效果对比。
 
 ```
 # 如下RAG测试用例建议使用WJC效果更好，毕竟WJC是一个名不见经传的小人物，但是LLM的知识他自己肯定知道一些
