@@ -78,14 +78,14 @@ b. LLM的现状是什么？未来是什么？
 
 测试用例：  
 
-a. 魏嘉辰是谁？请简要介绍一下。  
+a. 魏嘉辰是谁？他的作品有哪些？  
 
 无RAG检索增强效果展示（详细见图）：  
 ![无RAG增强大模型的对话](images/WJC_without_rag_benchmark1.png "无RAG的LLM对话效果展示")  
 有RAG检索增强效果展示（详细见图）：  
 ![有RAG增强大模型的对话](images/WJC_with_rag_benchmark1.png "有RAG的LLM对话效果展示")  
 
-b. 魏嘉辰对自己的自我评价如何？  
+b. 请简单介绍一下魏嘉辰的个人履历。  
 
 无RAG检索增强效果展示（详细见图）：  
 ![无RAG增强大模型的对话](images/WJC_without_rag_benchmark2.png "无RAG的LLM对话效果展示")  
