@@ -1,13 +1,12 @@
 import os
 import argparse
 import warnings
+import logging
 
 # 忽略所有警告及log日志信息
 warnings.filterwarnings('ignore')
-import logging
-from modelscope.utils.logger import get_logger
-logger = get_logger()
-logger.setLevel(logging.ERROR)
+# 设置全局日志级别为ERROR
+logging.getLogger().setLevel(logging.ERROR)
 
 # 本地构建离线预训练模型相关包（transformers、torch等）
 import torch
