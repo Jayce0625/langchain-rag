@@ -53,7 +53,7 @@ if args.benchmark:
 pdf_loader=PyPDFLoader(f'{args.faiss_db}.pdf', extract_images=True)   # 该文件讲述LLM大模型相关知识
 chunks=pdf_loader.load_and_split(text_splitter=RecursiveCharacterTextSplitter(chunk_size=100, chunk_overlap=10))  # 先load再split，chunk_size块大小，chunk_overlap分块时的重叠大小
 
-# 加载embedding模型，用于将chunk向量化
+# 加载中文词嵌入embedding模型，用于将chunk向量化
 embeddings=ModelScopeEmbeddings(model_id='iic/nlp_corom_sentence-embedding_chinese-base')  # 因Linux服务器不好科学上网的原因，所以此处使用魔搭社区的开源词嵌入模型
 
 # 构建并将chunk插入到faiss本地向量数据库
