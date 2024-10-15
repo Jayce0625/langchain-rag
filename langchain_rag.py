@@ -1,12 +1,12 @@
 import os
+import sys
 import argparse
 import warnings
 import logging
 
-# 忽略所有警告及log日志信息
+# 忽略所有警告及禁用所有日志信息
 warnings.filterwarnings('ignore')
-# 设置全局日志级别为ERROR
-logging.getLogger().setLevel(logging.ERROR)
+logging.disable(sys.maxsize)
 
 # 本地构建离线预训练模型相关包（transformers、torch等）
 import torch
