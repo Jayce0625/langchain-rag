@@ -36,7 +36,7 @@ model = Model.from_pretrained(model_dir, device_map="auto", trust_remote_code=Tr
 
 # -------------------------------------------------------------- 无 RAG 增强对话 --------------------------------------------------------------
 if args.benchmark:
-    print("\n================== LLM without RAG!!! ==================")
+    print("\n================== \033[91mLLM without RAG!!!\033[0m ==================")  # 红色字体醒目提示
     query = input('query: ')
 
     messages = []
@@ -45,7 +45,7 @@ if args.benchmark:
     response = model(messages)  # 前向推理
     llm_response = response['response']  # 从response字典中提取出大模型的回复
 
-    print(f"LLM response: {llm_response}\n")
+    print(f"LLM response: \033[92m{llm_response}\033[0m\n")  # 大模型输出绿色高亮
 # --------------------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -69,7 +69,7 @@ print(f'{args.faiss_db}.faiss saved at {os.getcwd()}!')
 vector_db=FAISS.load_local(f'{args.faiss_db}.faiss', embeddings, allow_dangerous_deserialization=True)
 
 # 开始循环对话
-print("\n================== LLM with RAG!!! ==================")
+print("\n================== \033[91mLLM with RAG!!!\033[0m ==================")
 while True:
     query = input('query_with_rag: ')
 
@@ -91,7 +91,7 @@ while True:
     llm_response = response['response']  # 从response字典中提取出大模型的回复
 
     # print(response)  # 输出response，其是一个字典，包括response：模型回复; history：历史对话信息，history又包括每一轮对话相似度提取召回的content以及该轮的query
-    print(f"LLM_with_rag response: {llm_response}\n")  # 直接输出大模型的回复
+    print(f"LLM_with_rag response: \033[92m{llm_response}\033[0m\n")  # 直接输出大模型的回复
     
     if args.benchmark:
         break
