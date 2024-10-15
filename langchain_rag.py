@@ -60,7 +60,7 @@ embeddings=ModelScopeEmbeddings(model_id='iic/nlp_corom_sentence-embedding_chine
 vector_db=FAISS.from_documents(chunks, embeddings)
 vector_db.save_local(f'{args.faiss_db}.faiss')
 
-print(f'{args.faiss_db}.faiss saved at {os.getcwd()}!')
+print(f'{args.faiss_db}.faiss saved at {os.getcwd()}/{args.faiss_db}.faiss')
 # ----------------------------------------------------------------------------------------------------------------------------------------------
 
 
