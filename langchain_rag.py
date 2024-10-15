@@ -1,5 +1,13 @@
 import os
 import argparse
+import warnings
+
+# 忽略所有警告及log日志信息
+warnings.filterwarnings('ignore')
+import logging
+from modelscope.utils.logger import get_logger
+logger = get_logger()
+logger.setLevel(logging.ERROR)
 
 # 本地构建离线预训练模型相关包（transformers、torch等）
 import torch
@@ -29,15 +37,15 @@ model = Model.from_pretrained(model_dir, device_map="auto", trust_remote_code=Tr
 
 # -------------------------------------------------------------- 无 RAG 增强对话 --------------------------------------------------------------
 if args.benchmark:
-    print("================== LLM without RAG!!! ==================")
-    query = input('query:')
+    print("\n================== LLM without RAG!!! ==================")
+    query = input('query: ')
 
     messages = []
     messages.append({"role": "user", "content": query})  # 构建prompt和角色
 
-    response = model(messages)
+    response = model(messages)  # 前向推理
 
-    print(response['response'])
+    print(f'LLM response: {response['response']}\n')  # 直接输出大模型的回复
 # --------------------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -63,7 +71,7 @@ vector_db=FAISS.load_local(f'{args.faiss_db}.faiss', embeddings, allow_dangerous
 # 开始循环对话
 print("\n================== LLM with RAG!!! ==================")
 while True:
-    query = input('query_with_rag:')
+    query = input('query_with_rag: ')
 
     result_simi = vector_db.similarity_search(query, k = 5)  # RAG的R过程，生成检索得到的TOP5相似度的chunk片
     source_knowledge= "\n".join([x.page_content for x in result_simi])  # 将相似度高的片段进行拼接
@@ -82,7 +90,7 @@ while True:
     response = model(messages)  # 执行推理
 
     # print(response)  # 输出response，其是一个字典，包括response：模型回复; history：历史对话信息，history又包括每一轮对话相似度提取召回的content以及该轮的query
-    print(response['response'])  # 直接输出大模型的回复
+    print(f'LLM_with_rag response: {response['response']}\n')  # 直接输出大模型的回复
     
     if args.benchmark:
         break
