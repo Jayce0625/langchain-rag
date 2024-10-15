@@ -57,7 +57,19 @@ python indexer.py
 1、benchmark模式下，使用LLM.pdf检索增强效果对比（差别不明显，因为本身预训练模型就有LLM的知识，但是如果对比LLM.pdf中的内容还是能直观看出RAG检索增强的更具体更准确）
 
 测试用例：  
-　　a. LLM是什么？现如今有哪些主流LLM？  
-　　　　无RAG效果（详细见图）：  
-　　　　　　![针对无RAG大模型的对话](images/LLM_without_rag_benchmark.png)
-    
+
+a. LLM是什么？现如今有哪些主流LLM？  
+
+无RAG检索增强效果展示（详细见图）：  
+![无RAG增强大模型的对话](images/LLM_without_rag_benchmark1.png "无RAG的LLM对话效果展示")  
+
+有RAG检索增强效果展示（详细见图）：  
+![有RAG增强大模型的对话](images/LLM_with_rag_benchmark1.png "有RAG的LLM对话效果展示")  
+
+b. LLM的现状是什么？未来是什么？  
+
+无RAG检索增强效果展示（详细见图）：  
+![无RAG增强大模型的对话](images/LLM_without_rag_benchmark2.png "无RAG的LLM对话效果展示")  
+
+有RAG检索增强效果展示（详细见图）：  
+![有RAG增强大模型的对话](images/LLM_with_rag_benchmark2.png "有RAG的LLM对话效果展示")  
