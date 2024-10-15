@@ -60,37 +60,37 @@ python indexer.py
 
 **测试用例a**：LLM是什么？现如今有哪些主流LLM？  
 
-无RAG检索增强效果展示（详细见图）：  
+**无RAG**检索增强效果展示（详细见图）：  
 ![无RAG增强大模型的对话](images/LLM_without_rag_benchmark1.png "无RAG的LLM对话效果展示")  
-有RAG检索增强效果展示（详细见图）：  
+**有RAG**检索增强效果展示（详细见图）：  
 ![有RAG增强大模型的对话](images/LLM_with_rag_benchmark1.png "有RAG的LLM对话效果展示")  
 
 **测试用例b**：LLM的现状是什么？未来是什么？  
 
-无RAG检索增强效果展示（详细见图）：  
+**无RAG**检索增强效果展示（详细见图）：  
 ![无RAG增强大模型的对话](images/LLM_without_rag_benchmark2.png "无RAG的LLM对话效果展示")  
-有RAG检索增强效果展示（详细见图）：  
+**有RAG**检索增强效果展示（详细见图）：  
 ![有RAG增强大模型的对话](images/LLM_with_rag_benchmark2.png "有RAG的LLM对话效果展示")  
 
 2、使用 ***WJC.pdf*** 检索增强效果对比（效果明显，因为预训练模型训练的时候肯定没“见过我”）
 
 **测试用例a**：魏嘉辰是谁？他的作品有哪些？  
 
-无RAG检索增强效果展示（详细见图）：  
+**无RAG**检索增强效果展示（详细见图）：  
 ![无RAG增强大模型的对话](images/WJC_without_rag_benchmark1.png "无RAG的LLM对话效果展示")  
-有RAG检索增强效果展示（详细见图）：  
+**有RAG**检索增强效果展示（详细见图）：  
 ![有RAG增强大模型的对话](images/WJC_with_rag_benchmark1.png "有RAG的LLM对话效果展示")  
 
 **测试用例b**：魏嘉辰是谁？他有哪些优点？  
 
-无RAG检索增强效果展示（详细见图）：  
+**无RAG**检索增强效果展示（详细见图）：  
 ![无RAG增强大模型的对话](images/WJC_without_rag_benchmark2.png "无RAG的LLM对话效果展示")  
-有RAG检索增强效果展示（详细见图）：  
+**有RAG**检索增强效果展示（详细见图）：  
 ![有RAG增强大模型的对话](images/WJC_with_rag_benchmark2.png "有RAG的LLM对话效果展示")  
 
-### 多轮对话模式
+### 多轮对话模式（使用RAG检索增强）
 
-1、使用 ***WJC.pdf*** 检索增强效果对比（效果明显，此处省略LLM.pdf）  
+1、使用 ***WJC.pdf*** 进行检索增强的多轮对话效果展示（效果更明显，此处就不试LLM.pdf了）  
 
 测试用例（多轮连续对话的测试用例为a-d，e用来测试应用的自动退出，代码中的逻辑为在对话过程中只要query出现“bye”或“再见”等字眼，程序会在大模型答复该query后自动退出）：  
 
