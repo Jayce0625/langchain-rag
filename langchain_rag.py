@@ -93,6 +93,7 @@ while True:
     # print(response)  # 输出response，其是一个字典，包括response：模型回复; history：历史对话信息，history又包括每一轮对话相似度提取召回的content以及该轮的query
     print(f"LLM_with_rag response: \033[92m{llm_response}\033[0m\n")  # 直接输出大模型的回复
     
-    if args.benchmark:
+    # 若给定命令行参数benchmark则只对话一次用于对比RAG效果，或者是在对话中输入bye或再见则中断对话
+    if args.benchmark or ("bye" in query.lower() or "再见" in query.lower()):
         break
 # ------------------------------------------------------------------- RAG增强 -------------------------------------------------------------------
