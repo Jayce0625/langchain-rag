@@ -85,7 +85,7 @@ a. 魏嘉辰是谁？他的作品有哪些？
 有RAG检索增强效果展示（详细见图）：  
 ![有RAG增强大模型的对话](images/WJC_with_rag_benchmark1.png "有RAG的LLM对话效果展示")  
 
-b. 请介绍一下魏嘉辰的个人优势。  
+b. 魏嘉辰是谁？他有哪些优点？  
 
 无RAG检索增强效果展示（详细见图）：  
 ![无RAG增强大模型的对话](images/WJC_without_rag_benchmark2.png "无RAG的LLM对话效果展示")  
