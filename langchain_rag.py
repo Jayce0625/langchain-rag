@@ -50,12 +50,12 @@ print(f'{args.faiss_db}.faiss saved at {os.getcwd()}!')
 # 加载由参数指定的faiss向量库，用于知识召回
 vector_db=FAISS.load_local(f'{args.faiss_db}.faiss', embeddings, allow_dangerous_deserialization=True)
 
-# 开始对话
+# 开始循环对话
 while True:
     query = input('query:')
 
     result_simi = vector_db.similarity_search(query, k = 5)  # RAG的R过程，生成检索得到的TOP5相似度的chunk片
-    source_knowledge= "\n".join([x.page_content for x in result_simi])
+    source_knowledge= "\n".join([x.page_content for x in result_simi])  # 将相似度高的片段进行拼接
 
     # 使用RAG技术，用从向量数据库中检索得到的与query相似度TOP5的chunk片段增强prompt提示词
     augmented_prompt = f"""Using the contexts below, answer the query.
@@ -66,8 +66,10 @@ while True:
     query: {query}"""
 
     messages = []
-    messages.append({"role": "user", "content": augmented_prompt})
-    response = model(messages)
-    print(response)
-    print(response['response'])
+    messages.append({"role": "user", "content": augmented_prompt})  # 根据RAG增强得到的prompt构建用户输入
+
+    response = model(messages)  # 执行推理
+
+    # print(response)  # 输出response，其是一个字典，包括response：模型回复; history：历史对话信息，history又包括每一轮对话相似度提取召回的content以及该轮的query
+    print(response['response'])  # 直接输出大模型的回复
 # -------------------------------------------------------------------- 增强 --------------------------------------------------------------------
