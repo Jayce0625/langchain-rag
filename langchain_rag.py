@@ -56,7 +56,7 @@ chunks=pdf_loader.load_and_split(text_splitter=RecursiveCharacterTextSplitter(ch
 # 加载embedding模型，用于将chunk向量化
 embeddings=ModelScopeEmbeddings(model_id='iic/nlp_corom_sentence-embedding_chinese-base')  # 因Linux服务器不好科学上网的原因，所以此处使用魔搭社区的开源词嵌入模型
 
-# 构建并将chunk插入到faiss本地向量数据库（此处两个文件构建了两个数据库，其一是“LLM知识”的向量数据库，其二是“魏嘉辰个人简介”的向量数据库）
+# 构建并将chunk插入到faiss本地向量数据库
 vector_db=FAISS.from_documents(chunks, embeddings)
 vector_db.save_local(f'{args.faiss_db}.faiss')
 
