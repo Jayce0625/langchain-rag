@@ -1,6 +1,6 @@
 # 基于LangChain实现RAG检索应用
 
-本repo的预训练大模型使用modelscope社区的对中文效果更好的Baichuan2-7B-Chat，结合langchain实现RAG检索增强。Linux服务器系统为Ubuntu 22.04，计算卡为NVIDIA A40-40g。
+本demo的预训练大模型使用modelscope社区的对中文效果更好的Baichuan2-7B-Chat，结合langchain实现RAG检索增强。Linux服务器系统为Ubuntu 22.04，计算卡为NVIDIA A40-40g。demo中已经提供了两个pdf文件作为测试用例，分别是LLM.pdf介绍LLM相关知识，和WJC.pdf介绍本人（魏嘉辰）的个人简介及相关信息（无隐私内容）。
 
 ## 依赖
 
