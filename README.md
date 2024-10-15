@@ -29,7 +29,7 @@ pip install torch==2.4.1 torchvision==0.19.1 torchaudio==2.4.1 -i https://pypi.t
 
 ```
 # 注意是modelscope[framework]，否则会丢失一些底层包
-pip install langchain huggingface_hub pypdf rapidocr-onnxruntime modelscope[framework] transformers sentence_transformers faiss-cpu tiktoken accelerate bitsandbytes -i https://mirrors.aliyun.com/pypi/simple
+pip install langchain huggingface_hub pypdf rapidocr-onnxruntime modelscope[framework] transformers sentence_transformers faiss-cpu tiktoken accelerate bitsandbytes -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
 ## 用法
