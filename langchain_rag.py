@@ -20,18 +20,21 @@ parser = argparse.ArgumentParser(description="Process some integers.")
 parser.add_argument('--faiss_db', type=str, default='LLM', help='FAISS database file name. In this demo, you can use \'LLM\' or \'WJC\'')
 args = parser.parse_args()
 
-
 # --------------------------------- 构建大模型，因科学上网原因，以Baichuan2-7B-Chat为例使用国产魔搭下载构建本地模型 ---------------------------------
 model_dir = snapshot_download("baichuan-inc/Baichuan2-7B-Chat", revision='master')  # 下载预训练权重至本地（Linux中默认为~/.cache/modelscope）
 model = Model.from_pretrained(model_dir, device_map="auto", trust_remote_code=True, torch_dtype=torch.float16)  # 从本地加载预训练权重，精度使用fp16
-# messages = []
-# messages.append({"role": "user", "content": "讲解一下“温故而知新”"})  # 构建prompt及角色
-# response = model(messages)
-# print(response)
 # ----------------------------------------------------------------- 构建大模型 -----------------------------------------------------------------
 
 
-# ------------------------------ 检索，使用OCR解析pdf中图片里面的文字，并切成chunk片段，块大小为100，块重叠token数为10 ------------------------------
+## -------------------------------------------------------------- 无 RAG 增强对话 --------------------------------------------------------------
+# messages = []
+# messages.append({"role": "user", "content": "讲解一下“温故而知新”"})  # 构建prompt和角色
+# response = model(messages)
+# print(response)
+## -------------------------------------------------------------- 无 RAG 增强对话 --------------------------------------------------------------
+
+
+# ----------------------------- RAG检索，使用OCR解析pdf中图片里面的文字，并切成chunk片段，块大小为100，块重叠token数为10 -----------------------------
 pdf_loader=PyPDFLoader(f'{args.faiss_db}.pdf', extract_images=True)   # 该文件讲述LLM大模型相关知识
 chunks=pdf_loader.load_and_split(text_splitter=RecursiveCharacterTextSplitter(chunk_size=100, chunk_overlap=10))  # 先load再split，chunk_size块大小，chunk_overlap分块时的重叠大小
 
@@ -43,10 +46,10 @@ vector_db=FAISS.from_documents(chunks, embeddings)
 vector_db.save_local(f'{args.faiss_db}.faiss')
 
 print(f'{args.faiss_db}.faiss saved at {os.getcwd()}!')
-# -------------------------------------------------------------------- 检索 --------------------------------------------------------------------
+# ------------------------------------------------------------------- RAG检索 -------------------------------------------------------------------
 
 
-# ------------------------------------------------ 增强，用本地向量库增强大模型的领域知识与领域能力 ------------------------------------------------
+# ----------------------------------------------- RAG增强，用本地向量库增强大模型的领域知识与领域能力 -----------------------------------------------
 # 加载由参数指定的faiss向量库，用于知识召回
 vector_db=FAISS.load_local(f'{args.faiss_db}.faiss', embeddings, allow_dangerous_deserialization=True)
 
@@ -72,4 +75,4 @@ while True:
 
     # print(response)  # 输出response，其是一个字典，包括response：模型回复; history：历史对话信息，history又包括每一轮对话相似度提取召回的content以及该轮的query
     print(response['response'])  # 直接输出大模型的回复
-# -------------------------------------------------------------------- 增强 --------------------------------------------------------------------
+# ------------------------------------------------------------------- RAG增强 -------------------------------------------------------------------
