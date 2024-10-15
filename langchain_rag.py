@@ -44,8 +44,9 @@ if args.benchmark:
     messages.append({"role": "user", "content": query})  # 构建prompt和角色
 
     response = model(messages)  # 前向推理
+    llm_response = response['response']  # 从response字典中提取出大模型的回复
 
-    print(f'LLM response: {response['response']}\n')  # 直接输出大模型的回复
+    print(f"LLM response: {llm_response}\n")
 # --------------------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -88,9 +89,10 @@ while True:
     messages.append({"role": "user", "content": augmented_prompt})  # 根据RAG增强得到的prompt构建用户输入
 
     response = model(messages)  # 执行推理
+    llm_response = response['response']  # 从response字典中提取出大模型的回复
 
     # print(response)  # 输出response，其是一个字典，包括response：模型回复; history：历史对话信息，history又包括每一轮对话相似度提取召回的content以及该轮的query
-    print(f'LLM_with_rag response: {response['response']}\n')  # 直接输出大模型的回复
+    print(f"LLM_with_rag response: {llm_response}\n")  # 直接输出大模型的回复
     
     if args.benchmark:
         break
