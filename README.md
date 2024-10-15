@@ -78,7 +78,7 @@ b. LLM的现状是什么？未来是什么？
 
 测试用例：  
 
-a. 魏嘉辰是谁？他有哪些优点？  
+a. 魏嘉辰是谁？请简要介绍一下。  
 
 无RAG检索增强效果展示（详细见图）：  
 ![无RAG增强大模型的对话](images/WJC_without_rag_benchmark1.png "无RAG的LLM对话效果展示")  
