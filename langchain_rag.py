@@ -59,7 +59,7 @@ device = torch.device(f"cuda:{args.device}" if torch.cuda.is_available() else "c
 model_dir = snapshot_download("baichuan-inc/Baichuan2-7B-Chat", revision='master')  # 下载预训练权重至本地（Linux中默认为~/.cache/modelscope）
 # model = Model.from_pretrained(model_dir, device_map="auto", trust_remote_code=True, torch_dtype=torch.float16).to(device)  # 从本地加载预训练权重，精度使用fp16
 model = AutoModelForCausalLM.from_pretrained(model_dir, device_map="auto", trust_remote_code=True, torch_dtype=torch.float16).to(device)
-tokenizer = AutoTokenizer.from_pretrained(model_dir, trust_remote_code=True).to(device)  # 加载分词器
+tokenizer = AutoTokenizer.from_pretrained(model_dir, trust_remote_code=True)  # 加载分词器
 
 # 设置聊天模板
 tokenizer.chat_template = "{% if not add_generation_prompt is defined %}{% set add_generation_prompt = false %}{% endif %}{% for message in messages %} \
@@ -77,6 +77,9 @@ if args.benchmark:
         {"role": "user", "content": query},
     ]  # 构建prompt和角色
     
+    for name, param in model.named_parameters():
+        print(name, param.device)
+
     generated_ids = stream_generate(model, messages, tokenizer, device)  # 对输入进行格式化，执行流式推理
     response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]  # 使用分词器的batch_decode方法将生成的ID解码回文本，并跳过特殊token
 
