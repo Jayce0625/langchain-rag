@@ -10,7 +10,7 @@ logging.disable(sys.maxsize)
 
 # 本地构建离线预训练模型相关包（transformers、torch等）
 import torch
-from transformers import TextStreamer  # 流式输出
+from transformers import TextStreamer, TextIteratorStreamer  # 流式输出，TextStreamer则是在model.generate时直接输出在命令行，而TextIteratorStreamer则是返回一个迭代器
 from transformers.generation.utils import GenerationConfig
 from modelscope import snapshot_download, Model, AutoTokenizer, AutoModelForCausalLM
 
@@ -44,12 +44,12 @@ def stream_generate(model, messages, tokenizer):
     text = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)  # 使用分词器的apply_chat_template方法来格式化消息
     model_inputs = tokenizer([text], return_tensors="pt").to(model.device)  # 将格式化后的文本转换为模型输入，并转换为PyTorch张量，然后移动到指定的设备
 
-    streamer = TextStreamer(tokenizer, skip_prompt=True, skip_special_tokens=True)  # 启动流式输出
-    generated_ids = model.generate(**model_inputs, max_new_tokens=512)  # 前向推理，流式输出
+    streamer = TextIteratorStreamer(tokenizer, skip_prompt=True, skip_special_tokens=True)  # 启动流式输出，以迭代器形式返回
+    generated_ids = model.generate(**model_inputs, max_new_tokens=512, streamer=streamer)  # 前向推理，流式输出
     # 从生成的ID中提取新生成的ID部分
     generated_ids = [output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)]
 
-    return generated_ids
+    return generated_ids, streamer
 
 
 # --------------------------------- 构建大模型，因科学上网原因，以Baichuan2-7B-Chat为例使用国产魔搭下载构建本地模型 ---------------------------------
@@ -73,8 +73,11 @@ if args.benchmark:
         {"role": "user", "content": query},
     ]  # 构建prompt和角色
     
-    generated_ids = stream_generate(model, messages, tokenizer)  # 对输入进行格式化，执行流式推理
+    generated_ids, streamer = stream_generate(model, messages, tokenizer)  # 对输入进行格式化，执行流式推理
     print("LLM response: ", end="")
+    for token in streamer:
+        print(f"\033[92m{token}\033[0m", end="")
+    print("\n")
     # response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]  # 使用分词器的batch_decode方法将生成的ID解码回文本，并跳过特殊token
     # print(f"LLM response: \033[92m{response}\033[0m\n")
 
@@ -126,8 +129,13 @@ while True:
         {"role": "user", "content": augmented_prompt},
     ]  # 根据RAG增强得到的prompt构建用户输入
 
-    generated_ids = stream_generate(model, messages, tokenizer)  # 对输入进行格式化，执行流式推理
-    response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]  # 使用分词器的batch_decode方法将生成的ID解码回文本，并跳过特殊token
+    generated_ids, streamer = stream_generate(model, messages, tokenizer)  # 对输入进行格式化，执行流式推理
+    print("LLM_with_rag response: ", end="")
+    for token in streamer:
+        print(f"\033[92m{token}\033[0m", end="")
+    print("\n")
+
+    # response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]  # 使用分词器的batch_decode方法将生成的ID解码回文本，并跳过特殊token
 
     # 一次性推理输出
     # response = model(messages)  # 执行推理
