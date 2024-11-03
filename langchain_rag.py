@@ -12,7 +12,7 @@ logging.disable(sys.maxsize)
 import torch
 from transformers import TextStreamer  # 流式输出
 from transformers.generation.utils import GenerationConfig
-from modelscope import snapshot_download, Model, AutoTokenizer
+from modelscope import snapshot_download, Model, AutoTokenizer, AutoModelForCausalLM
 
 # 检索增强相关包（langchain相关）
 from langchain_community.document_loaders import PyPDFLoader
@@ -46,7 +46,7 @@ def stream_generate(model, messages, tokenizer, device):
     model_inputs = tokenizer([text], return_tensors="pt").to(device)  # 将格式化后的文本转换为模型输入，并转换为PyTorch张量，然后移动到指定的设备
 
     streamer = TextStreamer(tokenizer, skip_prompt=True, skip_special_tokens=True)  # 启动流式输出
-    generated_ids = model(**model_inputs, max_new_tokens=512, streamer=streamer)  # 前向推理，流式输出
+    generated_ids = model.generate(**model_inputs, max_new_tokens=512, streamer=streamer)  # 前向推理，流式输出
     # 从生成的ID中提取新生成的ID部分
     generated_ids = [output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)]
 
@@ -57,8 +57,10 @@ def stream_generate(model, messages, tokenizer, device):
 device = torch.device(f"cuda:{args.device}" if torch.cuda.is_available() else "cpu")  # 设置使用的GPU型号
 
 model_dir = snapshot_download("baichuan-inc/Baichuan2-7B-Chat", revision='master')  # 下载预训练权重至本地（Linux中默认为~/.cache/modelscope）
-model = Model.from_pretrained(model_dir, device_map="auto", trust_remote_code=True, torch_dtype=torch.float16).to(device)  # 从本地加载预训练权重，精度使用fp16
+# model = Model.from_pretrained(model_dir, device_map="auto", trust_remote_code=True, torch_dtype=torch.float16).to(device)  # 从本地加载预训练权重，精度使用fp16
+model = AutoModelForCausalLM.from_pretrained(model_dir, device_map="auto", trust_remote_code=True, torch_dtype=torch.float16).to(device)
 tokenizer = AutoTokenizer.from_pretrained(model_dir, trust_remote_code=True)  # 加载分词器
+
 # 设置聊天模板
 tokenizer.chat_template = "{% if not add_generation_prompt is defined %}{% set add_generation_prompt = false %}{% endif %}{% for message in messages %} \
     {{'<|im_start|>' + message['role'] + '\n' + message['content'] + '<|im_end|>' + '\n'}}{% endfor %}{% if add_generation_prompt %}{{ '<|im_start|>assistant\n' }}{% endif %}"
