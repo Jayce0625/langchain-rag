@@ -45,7 +45,7 @@ def stream_generate(model, messages, tokenizer):
     model_inputs = tokenizer([text], return_tensors="pt").to(model.device)  # 将格式化后的文本转换为模型输入，并转换为PyTorch张量，然后移动到指定的设备
 
     streamer = TextStreamer(tokenizer, skip_prompt=True, skip_special_tokens=True)  # 启动流式输出
-    generated_ids = model.generate(**model_inputs, max_new_tokens=512, streamer=streamer)  # 前向推理，流式输出
+    generated_ids = model.generate(**model_inputs, max_new_tokens=512)  # 前向推理，流式输出
     # 从生成的ID中提取新生成的ID部分
     generated_ids = [output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)]
 
@@ -73,9 +73,6 @@ if args.benchmark:
         {"role": "user", "content": query},
     ]  # 构建prompt和角色
     
-    for name, param in model.named_parameters():
-        print(name, param.device)
-
     generated_ids = stream_generate(model, messages, tokenizer)  # 对输入进行格式化，执行流式推理
     print("LLM response: ", end="")
     # response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]  # 使用分词器的batch_decode方法将生成的ID解码回文本，并跳过特殊token
