@@ -53,7 +53,7 @@ def stream_generate(model, messages, tokenizer, w_or_wo_rag):
 
     print(f"{w_or_wo_rag} response: ", end="", flush=True)
     for token in streamer:
-        print(f"\033[92m{token}\033[0m", end="", flush=True)
+        print(f"\033[92m{token}\033[0m", end="", flush=True)  # 若使用end=""不换行输出，python会先将内容暂存在缓冲区，缓冲区满才刷新并整体输出，所以没有动态的效果，设置flush=True来立即刷新缓冲区达到动态输出效果
     print("\n")
 
     thread.join()
