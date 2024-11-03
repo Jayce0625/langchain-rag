@@ -30,7 +30,7 @@ parser.add_argument('--device', type=str, default='0', help='GPU index used for 
 args = parser.parse_args()
 
 
-def stream_generate(model, messages, tokenizer, device):
+def stream_generate(model, messages, tokenizer):
     """
     将输入的prompt使用模型的tokenizer进行格式化, 并使用流式推理方式来逐token输出。
 
@@ -43,7 +43,7 @@ def stream_generate(model, messages, tokenizer, device):
         新生成token的ID列表。
     """
     text = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)  # 使用分词器的apply_chat_template方法来格式化消息
-    model_inputs = tokenizer([text], return_tensors="pt").to(device)  # 将格式化后的文本转换为模型输入，并转换为PyTorch张量，然后移动到指定的设备
+    model_inputs = tokenizer([text], return_tensors="pt").to(model.device)  # 将格式化后的文本转换为模型输入，并转换为PyTorch张量，然后移动到指定的设备
 
     streamer = TextStreamer(tokenizer, skip_prompt=True, skip_special_tokens=True)  # 启动流式输出
     generated_ids = model.generate(**model_inputs, max_new_tokens=512, streamer=streamer)  # 前向推理，流式输出
@@ -80,7 +80,7 @@ if args.benchmark:
     for name, param in model.named_parameters():
         print(name, param.device)
 
-    generated_ids = stream_generate(model, messages, tokenizer, device)  # 对输入进行格式化，执行流式推理
+    generated_ids = stream_generate(model, messages, tokenizer)  # 对输入进行格式化，执行流式推理
     response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]  # 使用分词器的batch_decode方法将生成的ID解码回文本，并跳过特殊token
 
     # 一次性推理输出
@@ -131,7 +131,7 @@ while True:
         {"role": "user", "content": augmented_prompt},
     ]  # 根据RAG增强得到的prompt构建用户输入
 
-    generated_ids = stream_generate(model, messages, tokenizer, device)  # 对输入进行格式化，执行流式推理
+    generated_ids = stream_generate(model, messages, tokenizer)  # 对输入进行格式化，执行流式推理
     response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]  # 使用分词器的batch_decode方法将生成的ID解码回文本，并跳过特殊token
 
     # 一次性推理输出
