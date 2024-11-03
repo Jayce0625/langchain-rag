@@ -58,7 +58,7 @@ def stream_generate(model, messages, tokenizer, w_or_wo_rag):
     for new_text in streamer:
         # output = new_text.replace(text, '')
         # if output:
-            print(new_text)
+            print(new_text, end="")
 
     thread.join()
 
