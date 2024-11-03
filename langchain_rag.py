@@ -3,6 +3,7 @@ import sys
 import argparse
 import warnings
 import logging
+from threading import Thread
 
 # 忽略所有警告及禁用所有日志信息
 warnings.filterwarnings('ignore')
@@ -29,7 +30,7 @@ parser.add_argument('--benchmark', action='store_true', help='Comparing the outp
 args = parser.parse_args()
 
 
-def stream_generate(model, messages, tokenizer):
+def stream_generate(model, messages, tokenizer, w_or_wo_rag):
     """
     将输入的prompt使用模型的tokenizer进行格式化, 并使用流式推理方式来逐token输出。
 
@@ -43,13 +44,18 @@ def stream_generate(model, messages, tokenizer):
     """
     text = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)  # 使用分词器的apply_chat_template方法来格式化消息
     model_inputs = tokenizer([text], return_tensors="pt").to(model.device)  # 将格式化后的文本转换为模型输入，并转换为PyTorch张量，然后移动到指定的设备
-
     streamer = TextIteratorStreamer(tokenizer, skip_prompt=True, skip_special_tokens=True)  # 启动流式输出，以迭代器形式返回
-    generated_ids = model.generate(**model_inputs, max_new_tokens=512, streamer=streamer)  # 前向推理，流式输出
-    # 从生成的ID中提取新生成的ID部分
-    generated_ids = [output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)]
+    generation_kwargs = dict(model_inputs, streamer=streamer, max_new_tokens=512)  # 构建输入字典
 
-    return generated_ids, streamer
+    thread = Thread(target=model.generate, kwargs=generation_kwargs)  # 将模型流式推理的generate绑定到一个线程上，避免其阻塞主线程
+    thread.start()  # 启动线程执行推理
+
+    print(f"{w_or_wo_rag} response: ", end="")
+    for token in streamer:
+        print(f"\033[92m{token}\033[0m", end="")
+    print("\n")
+
+    thread.join()
 
 
 # --------------------------------- 构建大模型，因科学上网原因，以Baichuan2-7B-Chat为例使用国产魔搭下载构建本地模型 ---------------------------------
@@ -73,18 +79,12 @@ if args.benchmark:
         {"role": "user", "content": query},
     ]  # 构建prompt和角色
     
-    generated_ids, streamer = stream_generate(model, messages, tokenizer)  # 对输入进行格式化，执行流式推理
-    print("LLM response: ", end="")
-    for token in streamer:
-        print(f"\033[92m{token}\033[0m", end="")
-    print("\n")
-    # response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]  # 使用分词器的batch_decode方法将生成的ID解码回文本，并跳过特殊token
-    # print(f"LLM response: \033[92m{response}\033[0m\n")
+    stream_generate(model, messages, tokenizer, "LLM_without_RAG")  # 对输入进行格式化，执行流式推理
 
     # 一次性推理输出
-    # response = model(messages)  # 前向推理
+    # response = model(messages)  # 前向推理，使用Model.from_pretrained
     # llm_response = response['response']  # 从response字典中提取出大模型的回复
-    # print(f"LLM response: \033[92m{llm_response}\033[0m\n")  # 大模型输出绿色高亮
+    # print(f"LLM_without_RAG response: \033[92m{llm_response}\033[0m\n")  # 大模型输出绿色高亮
 # --------------------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -129,18 +129,11 @@ while True:
         {"role": "user", "content": augmented_prompt},
     ]  # 根据RAG增强得到的prompt构建用户输入
 
-    generated_ids, streamer = stream_generate(model, messages, tokenizer)  # 对输入进行格式化，执行流式推理
-    print("LLM_with_rag response: ", end="")
-    for token in streamer:
-        print(f"\033[92m{token}\033[0m", end="")
-    print("\n")
-
-    # response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]  # 使用分词器的batch_decode方法将生成的ID解码回文本，并跳过特殊token
+    stream_generate(model, messages, tokenizer, "LLM_with_rag")  # 对输入进行格式化，执行流式推理
 
     # 一次性推理输出
-    # response = model(messages)  # 执行推理
+    # response = model(messages)  # 执行推理，返回response字典，包括response：模型回复; history：历史对话信息，history又包括每一轮对话相似度提取召回的content以及该轮的query
     # llm_response = response['response']  # 从response字典中提取出大模型的回复
-    # print(response)  # 输出response，其是一个字典，包括response：模型回复; history：历史对话信息，history又包括每一轮对话相似度提取召回的content以及该轮的query
     # print(f"LLM_with_rag response: \033[92m{llm_response}\033[0m\n")  # 直接输出大模型的回复
     
     # 若给定命令行参数benchmark则只对话一次用于对比RAG效果，或者是在对话中输入bye或再见则中断对话
