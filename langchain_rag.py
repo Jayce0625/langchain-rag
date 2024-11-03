@@ -45,7 +45,7 @@ def stream_generate(model, messages, tokenizer, device):
     text = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)  # 使用分词器的apply_chat_template方法来格式化消息
     model_inputs = tokenizer([text], return_tensors="pt").to(device)  # 将格式化后的文本转换为模型输入，并转换为PyTorch张量，然后移动到指定的设备
 
-    streamer = TextStreamer(tokenizer, skip_prompt=True, skip_special_tokens=True)  # 启动流式输出
+    streamer = TextStreamer(tokenizer, skip_prompt=True, skip_special_tokens=True).to(device)  # 启动流式输出
     generated_ids = model.generate(**model_inputs, max_new_tokens=512, streamer=streamer)  # 前向推理，流式输出
     # 从生成的ID中提取新生成的ID部分
     generated_ids = [output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)]
