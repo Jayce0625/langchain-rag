@@ -42,8 +42,7 @@ def stream_generate(model, messages, tokenizer, w_or_wo_rag):
     Return:
         新生成token的ID列表。
     """
-    text = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True, add_special_tokens = False)  # 使用分词器的apply_chat_template方法来格式化消息
-    print(text)
+    text = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)  # 使用分词器的apply_chat_template方法来格式化消息
     model_inputs = tokenizer([text], return_tensors="pt").to(model.device)  # 将格式化后的文本转换为模型输入，并转换为PyTorch张量，然后移动到指定的设备
     streamer = TextIteratorStreamer(tokenizer, skip_prompt=True, skip_special_tokens=True)  # 启动流式输出，以迭代器形式返回
     generation_kwargs = dict(model_inputs, streamer=streamer, max_new_tokens=512)  # 构建输入字典
