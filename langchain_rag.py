@@ -64,8 +64,10 @@ if args.benchmark:
     query = input('query: ')
 
     # 格式化输入query并启用流式输出
-    messages = []
-    messages.append({"role": "user", "content": query})  # 构建prompt和角色
+    messages = [
+        {"role": "system", "content": "You are Baichuan. You are a helpful assistant."},
+        {"role": "user", "content": query},
+    ]  # 构建prompt和角色
     
     generated_ids = stream_generate(model, messages, tokenizer)  # 对输入进行格式化，执行流式推理
     response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]  # 使用分词器的batch_decode方法将生成的ID解码回文本，并跳过特殊token
@@ -113,8 +115,10 @@ while True:
 
     query: {query}"""
 
-    messages = []
-    messages.append({"role": "user", "content": augmented_prompt})  # 根据RAG增强得到的prompt构建用户输入
+    messages = [
+        {"role": "system", "content": "You are Baichuan. You are a helpful assistant."},
+        {"role": "user", "content": augmented_prompt},
+    ]  # 根据RAG增强得到的prompt构建用户输入
 
     generated_ids = stream_generate(model, messages, tokenizer)  # 对输入进行格式化，执行流式推理
     response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]  # 使用分词器的batch_decode方法将生成的ID解码回文本，并跳过特殊token
