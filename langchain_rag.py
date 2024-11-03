@@ -50,10 +50,15 @@ def stream_generate(model, messages, tokenizer, w_or_wo_rag):
     thread = Thread(target=model.generate, kwargs=generation_kwargs)  # 将模型流式推理的generate绑定到一个线程上，避免其阻塞主线程
     thread.start()  # 启动线程执行推理
 
-    print(f"{w_or_wo_rag} response: ", end="")
-    for token in streamer:
-        print(f"\033[92m{token}\033[0m", end="")
-    print("\n")
+    # print(f"{w_or_wo_rag} response: ", end="")
+    # for token in streamer:
+    #     print(f"\033[92m{token}\033[0m", end="")
+    # print("\n")
+    generated_text = ""
+    for new_text in streamer:
+        output = new_text.replace(text, '')
+        if output:
+            print(output)
 
     thread.join()
 
