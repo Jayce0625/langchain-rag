@@ -26,7 +26,6 @@ parser = argparse.ArgumentParser(description="Process some integers.")
 parser.add_argument('--faiss_db', type=str, default='LLM', help='FAISS database file name. In this demo, you can use \'LLM\' or \'WJC\', \
                                                                  also your own pdf, just make sure it\'s in the root directory of this demo!')  # 
 parser.add_argument('--benchmark', action='store_true', help='Comparing the output of LLM w/ and w/o RAG.')
-parser.add_argument('--device', type=str, default='0', help='GPU index used for inference.')
 args = parser.parse_args()
 
 
@@ -42,7 +41,7 @@ def stream_generate(model, messages, tokenizer):
     Return:
         新生成token的ID列表。
     """
-    text = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True).to(model.device)  # 使用分词器的apply_chat_template方法来格式化消息
+    text = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)  # 使用分词器的apply_chat_template方法来格式化消息
     model_inputs = tokenizer([text], return_tensors="pt").to(model.device)  # 将格式化后的文本转换为模型输入，并转换为PyTorch张量，然后移动到指定的设备
 
     streamer = TextStreamer(tokenizer, skip_prompt=True, skip_special_tokens=True)  # 启动流式输出
@@ -54,11 +53,9 @@ def stream_generate(model, messages, tokenizer):
 
 
 # --------------------------------- 构建大模型，因科学上网原因，以Baichuan2-7B-Chat为例使用国产魔搭下载构建本地模型 ---------------------------------
-device = torch.device(f"cuda:{args.device}" if torch.cuda.is_available() else "cpu")  # 设置使用的GPU型号
-
 model_dir = snapshot_download("baichuan-inc/Baichuan2-7B-Chat", revision='master')  # 下载预训练权重至本地（Linux中默认为~/.cache/modelscope）
 # model = Model.from_pretrained(model_dir, device_map="auto", trust_remote_code=True, torch_dtype=torch.float16).to(device)  # 从本地加载预训练权重，精度使用fp16
-model = AutoModelForCausalLM.from_pretrained(model_dir, device_map="auto", trust_remote_code=True, torch_dtype=torch.float16).to(device)
+model = AutoModelForCausalLM.from_pretrained(model_dir, device_map="auto", trust_remote_code=True, torch_dtype=torch.float16)
 tokenizer = AutoTokenizer.from_pretrained(model_dir, trust_remote_code=True)  # 加载分词器
 # 设置聊天模板
 tokenizer.chat_template = "{% if not add_generation_prompt is defined %}{% set add_generation_prompt = false %}{% endif %}{% for message in messages %} \
