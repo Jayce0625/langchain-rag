@@ -48,7 +48,8 @@ def stream_generate(model, messages, tokenizer):
     generated_ids = model.generate(**model_inputs, max_new_tokens=512, streamer=streamer)  # 前向推理，流式输出
     # 从生成的ID中提取新生成的ID部分
     generated_ids = [output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)]
-
+    print("LLM response: ", end="")
+    
     return generated_ids
 
 
@@ -130,7 +131,6 @@ while True:
     ]  # 根据RAG增强得到的prompt构建用户输入
 
     generated_ids = stream_generate(model, messages, tokenizer)  # 对输入进行格式化，执行流式推理
-    print("LLM response: ", end="")
     response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]  # 使用分词器的batch_decode方法将生成的ID解码回文本，并跳过特殊token
 
     # 一次性推理输出
