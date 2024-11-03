@@ -76,7 +76,7 @@ if args.benchmark:
     generated_ids = stream_generate(model, messages, tokenizer)  # 对输入进行格式化，执行流式推理
     print("LLM response: ", end="")
     # response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]  # 使用分词器的batch_decode方法将生成的ID解码回文本，并跳过特殊token
-    print(f"LLM response: \033[92m{response}\033[0m\n")
+    # print(f"LLM response: \033[92m{response}\033[0m\n")
 
     # 一次性推理输出
     # response = model(messages)  # 前向推理
