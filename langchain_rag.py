@@ -26,10 +26,11 @@ parser = argparse.ArgumentParser(description="Process some integers.")
 parser.add_argument('--faiss_db', type=str, default='LLM', help='FAISS database file name. In this demo, you can use \'LLM\' or \'WJC\', \
                                                                  also your own pdf, just make sure it\'s in the root directory of this demo!')  # 
 parser.add_argument('--benchmark', action='store_true', help='Comparing the output of LLM w/ and w/o RAG.')
+parser.add_argument('--device', type=str, default='0', help='GPU index used for inference.')
 args = parser.parse_args()
 
 
-def stream_generate(model, messages, tokenizer):
+def stream_generate(model, messages, tokenizer, device):
     """
     将输入的prompt使用模型的tokenizer进行格式化, 并使用流式推理方式来逐token输出。
 
@@ -37,11 +38,12 @@ def stream_generate(model, messages, tokenizer):
         model: 执行推理的LLM。
         messages: 需要被格式化及传入LLM执行推理的输入。
         tokenizer: 分词器。
+        device: GPU索引。
     Return:
         新生成token的ID列表。
     """
     text = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)  # 使用分词器的apply_chat_template方法来格式化消息
-    model_inputs = tokenizer([text], return_tensors="pt").to(model.device)  # 将格式化后的文本转换为模型输入，并转换为PyTorch张量，然后移动到指定的设备
+    model_inputs = tokenizer([text], return_tensors="pt").to(device)  # 将格式化后的文本转换为模型输入，并转换为PyTorch张量，然后移动到指定的设备
 
     streamer = TextStreamer(tokenizer, skip_prompt=True, skip_special_tokens=True)  # 启动流式输出
     generated_ids = model.generate(**model_inputs, max_new_tokens=512, streamer=streamer)  # 前向推理，流式输出
@@ -52,9 +54,11 @@ def stream_generate(model, messages, tokenizer):
 
 
 # --------------------------------- 构建大模型，因科学上网原因，以Baichuan2-7B-Chat为例使用国产魔搭下载构建本地模型 ---------------------------------
+device = torch.device(f"cuda:{args.device}" if torch.cuda.is_available() else "cpu")  # 设置使用的GPU型号
+
 model_dir = snapshot_download("baichuan-inc/Baichuan2-7B-Chat", revision='master')  # 下载预训练权重至本地（Linux中默认为~/.cache/modelscope）
-model = Model.from_pretrained(model_dir, device_map="auto", trust_remote_code=True, torch_dtype=torch.float16)  # 从本地加载预训练权重，精度使用fp16
-tokenizer = AutoTokenizer.from_pretrained(model_dir, trust_remote_code=True)  # 加载分词器
+model = Model.from_pretrained(model_dir, device_map="auto", trust_remote_code=True, torch_dtype=torch.float16).to(device)  # 从本地加载预训练权重，精度使用fp16
+tokenizer = AutoTokenizer.from_pretrained(model_dir, trust_remote_code=True).to(device)  # 加载分词器
 # 设置聊天模板
 tokenizer.chat_template = "{% if not add_generation_prompt is defined %}{% set add_generation_prompt = false %}{% endif %}{% for message in messages %} \
     {{'<|im_start|>' + message['role'] + '\n' + message['content'] + '<|im_end|>' + '\n'}}{% endfor %}{% if add_generation_prompt %}{{ '<|im_start|>assistant\n' }}{% endif %}"
@@ -71,7 +75,7 @@ if args.benchmark:
         {"role": "user", "content": query},
     ]  # 构建prompt和角色
     
-    generated_ids = stream_generate(model, messages, tokenizer)  # 对输入进行格式化，执行流式推理
+    generated_ids = stream_generate(model, messages, tokenizer, device)  # 对输入进行格式化，执行流式推理
     response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]  # 使用分词器的batch_decode方法将生成的ID解码回文本，并跳过特殊token
 
     # 一次性推理输出
@@ -122,7 +126,7 @@ while True:
         {"role": "user", "content": augmented_prompt},
     ]  # 根据RAG增强得到的prompt构建用户输入
 
-    generated_ids = stream_generate(model, messages, tokenizer)  # 对输入进行格式化，执行流式推理
+    generated_ids = stream_generate(model, messages, tokenizer, device)  # 对输入进行格式化，执行流式推理
     response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]  # 使用分词器的batch_decode方法将生成的ID解码回文本，并跳过特殊token
 
     # 一次性推理输出
