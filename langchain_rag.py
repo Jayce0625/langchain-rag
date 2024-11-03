@@ -55,11 +55,10 @@ def stream_generate(model, messages, tokenizer):
 model_dir = snapshot_download("baichuan-inc/Baichuan2-7B-Chat", revision='master')  # 下载预训练权重至本地（Linux中默认为~/.cache/modelscope）
 model = Model.from_pretrained(model_dir, device_map="auto", trust_remote_code=True, torch_dtype=torch.float16)  # 从本地加载预训练权重，精度使用fp16
 tokenizer = AutoTokenizer.from_pretrained(model_dir, trust_remote_code=True)  # 加载分词器
-model.generation_config = GenerationConfig.from_pretrained(model_dir, trust_remote_code=True)
+# 设置聊天模板
+tokenizer.chat_template = "{% if not add_generation_prompt is defined %}{% set add_generation_prompt = false %}{% endif %}{% for message in messages %} \
+    {{'<|im_start|>' + message['role'] + '\n' + message['content'] + '<|im_end|>' + '\n'}}{% endfor %}{% if add_generation_prompt %}{{ '<|im_start|>assistant\n' }}{% endif %}"
 # ----------------------------------------------------------------- 构建大模型 -----------------------------------------------------------------
-
-
-print(tokenizer.default_chat_template)
 
 # -------------------------------------------------------------- 无 RAG 增强对话 --------------------------------------------------------------
 if args.benchmark:
