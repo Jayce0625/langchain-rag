@@ -42,7 +42,7 @@ def stream_generate(model, messages, tokenizer, w_or_wo_rag):
     Return:
         新生成token的ID列表。
     """
-    text = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)  # 使用分词器的apply_chat_template方法来格式化消息
+    text = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True, add_special_tokens = False)  # 使用分词器的apply_chat_template方法来格式化消息
     model_inputs = tokenizer([text], return_tensors="pt").to(model.device)  # 将格式化后的文本转换为模型输入，并转换为PyTorch张量，然后移动到指定的设备
     streamer = TextIteratorStreamer(tokenizer, skip_prompt=True, skip_special_tokens=True)  # 启动流式输出，以迭代器形式返回
     generation_kwargs = dict(model_inputs, streamer=streamer, max_new_tokens=512)  # 构建输入字典
@@ -52,8 +52,8 @@ def stream_generate(model, messages, tokenizer, w_or_wo_rag):
 
     print(f"{w_or_wo_rag} response: ", end="", flush=True)
     for token in streamer:
-        token = token.replace(text, '')  # text中包含特殊字符，如<|im_end|>等，尽管在流式输出时声明了skip_special_tokens=True，但有时结尾的<|im_end|>仍会输出，使用替换方法手动将这些特殊字符消除
-        if token:
+        # token = token.replace('<|im_end|>', '')  # text中包含特殊字符，如<|im_end|>等，尽管在流式输出时声明了skip_special_tokens=True，但有时结尾的<|im_end|>仍会输出，使用替换方法手动将这些特殊字符消除
+        # if token:
             # python的print在使用end=""不换行输出时，会先将内容暂存在缓冲区，缓冲区满才刷新并整体输出，所以没有动态的效果，设置flush=True来立即刷新缓冲区达到动态输出效果
             print(f"\033[92m{token}\033[0m", end="", flush=True)
     print("\n")
@@ -77,7 +77,10 @@ if args.benchmark:
     query = input('query: ')
 
     # 格式化输入query并启用流式输出
-    messages = [{"role": "user", "content": query}]  # 构建prompt和角色
+    messages = [
+        {"role": "system", "content": "You are Baichuan. You are a helpful assistant."},
+        {"role": "user", "content": query},
+    ]  # 构建prompt和角色
     
     stream_generate(model, messages, tokenizer, "LLM_without_RAG")  # 对输入进行格式化，执行流式推理
 
@@ -100,7 +103,7 @@ embeddings=ModelScopeEmbeddings(model_id='iic/nlp_corom_sentence-embedding_chine
 vector_db=FAISS.from_documents(chunks, embeddings)
 vector_db.save_local(f'{args.faiss_db}.faiss')
 
-print(f'\nThe faiss database {args.faiss_db}.faiss is saved in {os.getcwd()}/{args.faiss_db}.faiss !')
+print(f'The faiss database {args.faiss_db}.faiss is saved in {os.getcwd()}/{args.faiss_db}.faiss !')
 # ----------------------------------------------------------------------------------------------------------------------------------------------
 
 
