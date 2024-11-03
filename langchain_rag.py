@@ -77,10 +77,7 @@ if args.benchmark:
     query = input('query: ')
 
     # 格式化输入query并启用流式输出
-    messages = [
-        {"role": "system", "content": "You are Baichuan. You are a helpful assistant."},
-        {"role": "user", "content": query},
-    ]  # 构建prompt和角色
+    messages = [{"role": "user", "content": query}]  # 构建prompt和角色
     
     stream_generate(model, messages, tokenizer, "LLM_without_RAG")  # 对输入进行格式化，执行流式推理
 
